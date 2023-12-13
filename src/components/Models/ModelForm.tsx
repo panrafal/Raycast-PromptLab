@@ -24,6 +24,7 @@ interface ModelFormValues {
   authType: string;
   apiKey: string;
   inputSchema: string;
+  requestHeaders: string;
   outputKeyPath: string;
   outputTiming: string;
   lengthLimit: string;
@@ -185,6 +186,12 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
         title="Input Schema"
         {...itemProps.inputSchema}
         info="The JSON schema of the endpoint used to generate PromptLab command output. Use {prompt} to represent PromptLab's entire query to the model input, or {basePrompt} and {input} to represent the component parts."
+      />
+
+      <Form.TextField
+        title="Request Headers"
+        {...itemProps.requestHeaders}
+        info="JSON with additional request headers."
       />
 
       <Form.TextField

@@ -1,4 +1,4 @@
-import { AI, environment, getPreferenceValues } from "@raycast/api";
+import { AI, Toast, environment, getPreferenceValues, showToast } from "@raycast/api";
 import { useAI } from "@raycast/utils";
 import { ExtensionPreferences, Model, JSONObject } from "../utils/types";
 import { useEffect, useRef, useState } from "react";
@@ -46,6 +46,7 @@ export default function useModel(
     authType: "",
     apiKey: "",
     inputSchema: "",
+    requestHeaders: "",
     outputKeyPath: "",
     outputTiming: "async",
     lengthLimit: "2500",
@@ -64,6 +65,7 @@ export default function useModel(
     authType: preferences.authType,
     apiKey: preferences.apiKey,
     inputSchema: preferences.inputSchema,
+    requestHeaders: "",
     outputKeyPath: preferences.outputKeyPath,
     outputTiming: preferences.outputTiming,
     lengthLimit: preferences.lengthLimit,
@@ -134,6 +136,10 @@ export default function useModel(
     }
   }
 
+  if (targetModel.requestHeaders) {
+    Object.assign(headers, JSON.parse(targetModel.requestHeaders))
+  }
+
   const modelSchema = raycastModel
     ? {}
     : JSON.parse(
@@ -165,6 +171,7 @@ export default function useModel(
     }
 
     if (AIRef.current == undefined && execute && prompt?.length && !isLoading) {
+      console.log('!!!! useModel request', targetModel.endpoint, headers)
       const fetchAI = fetch(targetModel.endpoint, {
         method: "POST",
         headers: headers,
@@ -199,6 +206,9 @@ export default function useModel(
     const me = AIRef.current;
     AIRef.current?.fetch
       ?.then((response) => {
+        console.log('!!!! useModel response', response)
+
+
         if (response.ok && targetModel.outputTiming == "sync") {
           response.json().then((json) => {
             const output = get(json as JSONObject, targetModel.outputKeyPath) as string;
@@ -257,6 +267,14 @@ export default function useModel(
             setIsLoading(false);
             AIRef.current = undefined;
           });
+        } else {
+          response.text().then((text) => {
+            showToast({
+              title: `Model failed with: ${response.status} ${text}`,
+              style: Toast.Style.Failure,
+            });
+            console.error('useModel failed with: ', response.status, text)
+          })
         }
       })
       .finally(() => {

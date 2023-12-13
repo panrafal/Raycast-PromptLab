@@ -495,6 +495,11 @@ export type Model = {
   inputSchema: string;
 
   /**
+   * Additional request headers as a JSON string.
+   */
+  requestHeaders: string;
+
+  /**
    * The model's output schema as a JSON object key path.
    */
   outputKeyPath: string;

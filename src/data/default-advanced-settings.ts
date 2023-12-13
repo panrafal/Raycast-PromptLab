@@ -213,7 +213,7 @@ export const defaultAdvancedSettings = {
     CreateDerivativeAction: {
       enabled: ["search-commands", "discover-commands"],
       shortcut: {
-        key: "d",
+        key: "r",
         modifiers: ["cmd"],
       },
     },

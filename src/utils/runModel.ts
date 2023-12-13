@@ -1,4 +1,4 @@
-import { AI, LocalStorage, environment, getPreferenceValues } from "@raycast/api";
+import { AI, LocalStorage, Toast, environment, getPreferenceValues, showToast } from "@raycast/api";
 import { ExtensionPreferences, JSONObject, Model } from "../utils/types";
 import fetch from "node-fetch";
 
@@ -28,6 +28,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
     authType: "",
     apiKey: "",
     inputSchema: "",
+    requestHeaders: "",
     outputKeyPath: "",
     outputTiming: "async",
     lengthLimit: "2500",
@@ -46,6 +47,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
     endpoint: preferences.modelEndpoint,
     authType: preferences.authType,
     apiKey: preferences.apiKey,
+    requestHeaders: "",
     inputSchema: preferences.inputSchema,
     outputKeyPath: preferences.outputKeyPath,
     outputTiming: preferences.outputTiming,
@@ -122,6 +124,10 @@ export default async function runModel(basePrompt: string, prompt: string, input
       }
     }
 
+    if (targetModel.requestHeaders) {
+      Object.assign(headers, JSON.parse(targetModel.requestHeaders))
+    }  
+
     const modelSchema = raycastModel
       ? {}
       : JSON.parse(
@@ -147,6 +153,8 @@ export default async function runModel(basePrompt: string, prompt: string, input
     if (preferences.includeTemperature) {
       modelSchema["temperature"] = temp;
     }
+
+    console.log('!!!! runModel request', targetModel.endpoint, headers, modelSchema)
 
     if (raycastModel) {
       // If the endpoint is Raycast AI, use the AI hook
@@ -204,6 +212,14 @@ export default async function runModel(basePrompt: string, prompt: string, input
           });
           return text;
         } else {
+          const text = await response.text();
+          showToast({
+            title: `Model failed with: ${response.status} ${text}`,
+            style: Toast.Style.Failure,
+          });
+          console.error('runModel failed with: ', response.status, text)
+
+
           return response.statusText;
         }
       }
